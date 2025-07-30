@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String            @id @default(cuid())
+  name        String
+  email       String            @unique
+  phoneNumber String            @unique @map("phone_number")
+  password    String
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  ownedGroups      Group[]           @relation("GroupOwner")
+  groupMemberships GroupMembership[]  // <-- changed to array for 1:N relation
+  joinRequests     JoinRequest[]
+  invitations      Invitation[]
+
+  @@map("users")
+}
+
+enum GroupVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+model Group {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  maxCapacity Int             @map("max_capacity")
+  visibility  GroupVisibility
+  inviteCode  String?         @unique @map("invite_code")
+  ownerId     String          @map("owner_id")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  owner        User              @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  memberships  GroupMembership[]
+  joinRequests JoinRequest[]
+  invitations  Invitation[]
+
+  @@map("groups")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model GroupMembership {
+  id       String           @id @default(cuid())
+  userId   String           @map("user_id")
+  groupId  String           @map("group_id")
+  status   MembershipStatus @default(ACTIVE)
+  joinedAt DateTime         @default(now()) @map("joined_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("group_memberships")
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model JoinRequest {
+  id        String        @id @default(cuid())
+  userId    String        @map("user_id")
+  groupId   String        @map("group_id")
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("join_requests")
+}
+
+model Invitation {
+  id        String        @id @default(cuid())
+  userId    String        @map("user_id")
+  groupId   String        @map("group_id")
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("invitations")
+}
