@@ -1,100 +1,115 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Esusu Confam - Group Management API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A clean architecture NestJS application for managing user groups with authentication, join requests, and invitation systems.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+##  Quick Start
 
-## Description
+### Prerequisites
+- Node.js (v16+)
+- PostgreSQL
+- pnpm/yarn
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+### Installation
 
 ```bash
-$ pnpm install
+# Install dependencies
+pnpm install
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Setup database
+npx prisma generate
+npx prisma migrate dev
+
+# Start development server
+pnpm run start:dev
 ```
 
-## Compile and run the project
+The API will be available at `http://localhost:3000/api/v1`
+
+##  Environment Variables
+
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/esusu_confam_db"
+JWT_SECRET="your-jwt-secret-key"
+JWT_EXPIRES_IN="7d"
+PORT=3000
+NODE_ENV="development"
+```
+
+##  API Endpoints
+
+### Authentication
+- `POST /auth/register` - Register user
+- `POST /auth/login` - Login user
+
+### Groups
+- `POST /groups` - Create group
+- `GET /groups/search` - Search public groups
+- `GET /groups/my-group` - Get user's group
+- `POST /groups/:id/join` - Request to join
+- `PUT /groups/:id/join-requests` - Approve/reject requests
+- `POST /groups/:id/invite` - Invite to private group
+- `POST /groups/accept-invite/:code` - Accept invite
+- `DELETE /groups/:id/leave` - Leave group
+
+
+
+##  Usage Examples
+
+**Register:**
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John","email":"john@example.com","phoneNumber":"+1234567890","password":"password123"}'
+```
+
+**Create Group:**
+```bash
+curl -X POST http://localhost:3000/api/v1/groups \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"My Group","description":"Test group","maxCapacity":10,"visibility":"PUBLIC"}'
+```
+
+##  Key Features
+
+- **Authentication**: JWT-based with bcrypt password hashing
+- **Groups**: Public/private with capacity limits
+- **Business Rules**: One group per user, role-based permissions
+- **Search**: Paginated public group search
+- **Invitations**: Unique codes for private groups
+- **Clean Architecture**: SOLID principles, separation of concerns
+
+##  Scripts
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm run start:dev      # Development with hot reload
+pnpm run build          # Production build
+pnpm run start:prod     # Start production server
+pnpm run test           # Run tests
+pnpm run prisma:studio  # Open database GUI
 ```
 
-## Run tests
+##  Database Models
 
-```bash
-# unit tests
-$ pnpm run test
+- **User**: Authentication and profile
+- **Group**: Group metadata and settings
+- **GroupMember**: User memberships with roles
+- **JoinRequest**: Public group join requests
+- **GroupInvite**: Private group invitations
 
-# e2e tests
-$ pnpm run test:e2e
+##  Business Rules
 
-# test coverage
-$ pnpm run test:cov
-```
+- Users can only join one group at a time
+- Groups have maximum capacity limits
+- Public groups: anyone can request to join
+- Private groups: invitation-only with unique codes
+- Admins can manage requests and invite users
+- Group owners cannot be removed
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-# Esusu-Confam-Ltd
+Built with NestJS, Prisma, and PostgreSQL

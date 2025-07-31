@@ -6,6 +6,7 @@ import { CreateUserDto } from '../../users/dto/create-user.dto';
 import { LoginDto } from '../dto/login.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { RegisterResponseDto } from '../dto/register-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,15 +15,15 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
+  async register(createUserDto: CreateUserDto): Promise<RegisterResponseDto> {
     const user = await this.userService.create(createUserDto);
     const userResponse = plainToInstance(UserResponseDto, user, {
       excludeExtraneousValues: true,
     });
     const accessToken = this.generateToken(userResponse);
 
-    return new AuthResponseDto({
-      accessToken,
+    return new RegisterResponseDto({
+      message: 'Registration successful. Please log in.',
       user: userResponse,
     });
   }

@@ -7,6 +7,6 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return this.appService.getHello(); // Should respond at /api/v1/
+    return this.appService.getHello(); 
   }
 }
